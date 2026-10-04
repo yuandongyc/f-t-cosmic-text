@@ -139,6 +139,9 @@ pub struct FontSystem {
     /// Cache for loaded fonts from the database.
     font_cache: HashMap<(fontdb::ID, fontdb::Weight), Option<Arc<Font>>>,
 
+    /// Optical size (points) applied to fonts with an `opsz` axis.
+    optical_size: Option<f32>,
+
     /// Sorted unique ID's of all Monospace fonts in DB
     monospace_font_ids: Vec<fontdb::ID>,
 
@@ -339,6 +342,7 @@ impl FontSystem {
             monospace_font_ids,
             per_script_monospace_font_ids,
             font_cache: HashMap::default(),
+            optical_size: None,
             font_matches_cache: HashMap::default(),
             font_codepoint_support_info_cache: HashMap::default(),
             monospace_fallbacks_buffer: BTreeSet::default(),
@@ -374,6 +378,18 @@ impl FontSystem {
     /// Consume this [`FontSystem`] and return the locale and database.
     pub fn into_locale_and_db(self) -> (String, fontdb::Database) {
         (self.locale, self.db)
+    }
+
+    /// Optical size (points) applied to fonts with an `opsz` axis.
+    pub fn optical_size(&self) -> Option<f32> {
+        self.optical_size
+    }
+    /// Set the optical size (points) for fonts with an `opsz` axis. Changing it drops loaded font instances.
+    pub fn set_optical_size(&mut self, size: Option<f32>) {
+        if self.optical_size != size {
+            self.optical_size = size;
+            self.font_cache.clear();
+        }
     }
 
     /// Get a font by its ID and weight.
